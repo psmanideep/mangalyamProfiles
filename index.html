@@ -1,0 +1,296 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Brides Profiles</title>
+    <style>
+      body {
+        font-family: "Segoe UI";
+        background: #f4f6f9;
+        margin: 0;
+        padding: 20px;
+      }
+
+      h2 {
+        text-align: center;
+      }
+
+      .container {
+        display: flex;
+        gap: 16px;
+        overflow-x: auto;
+        cursor: grab;
+      }
+
+      .card {
+        min-width: 300px;
+        background: white;
+        border-radius: 14px;
+        padding: 12px;
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.08);
+        transition: all 0.25s ease;
+        cursor: pointer;
+      }
+
+      .card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 10px 18px rgba(0, 0, 0, 0.12);
+      }
+
+      .card img {
+        width: 100%;
+        height: 300px;
+        border-radius: 10px;
+        object-fit: cover;
+      }
+
+      .name {
+        font-size: 17px;
+        font-weight: bold;
+        margin-top: 8px;
+      }
+
+      .row {
+        font-size: 12px;
+        margin: 4px 0;
+      }
+
+      .group {
+        border-top: 1px solid #eee;
+        padding-top: 6px;
+        margin-top: 6px;
+      }
+
+      .toolbar {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+        margin-bottom: 15px;
+        position: sticky;
+        top: 0;
+        background: #f4f6f9;
+        padding: 10px;
+        z-index: 10;
+      }
+
+      .toolbar select,
+      .toolbar button {
+        padding: 6px 10px;
+        border-radius: 8px;
+        border: 1px solid #ccc;
+        cursor: pointer;
+      }
+
+      /* Modal */
+      .modal {
+        display: none;
+        position: fixed;
+        backdrop-filter: blur(3px);
+        background: rgba(0, 0, 0, 0.82);
+        width: 100%;
+        height: 100%;
+        justify-content: center;
+        align-items: center;
+        left: 0;
+        top: 0;
+        z-index: 999;
+      }
+
+      .modal img {
+        max-width: 80vw;
+        max-height: 85vh;
+        border-radius: 12px;
+      }
+
+      .close-btn {
+        position: absolute;
+        top: 10px;
+        right: 20px;
+        background: white;
+        border-radius: 50%;
+        padding: 6px 10px;
+        cursor: pointer;
+      }
+    </style>
+  </head>
+
+  <body>
+    <h2>Sri Mangalyam Matrimony Profiles</h2>
+
+    <div class="toolbar">
+      <select id="sortBy">
+        <option value="">Sort By</option>
+        <option value="age">Age</option>
+        <option value="ageDiff">Age Difference</option>
+        <option value="lpa">LPA</option>
+        <option value="location">Location</option>
+        <option value="height">Height</option>
+      </select>
+
+      <select id="sortOrder">
+        <option value="asc">Ascending</option>
+        <option value="desc">Descending</option>
+      </select>
+
+      <button onclick="applySort()">Sort</button>
+    </div>
+
+    <div class="container" id="container"></div>
+
+    <!-- Modal -->
+    <div class="modal" id="modal" onclick="outsideClick(event)">
+      <div>
+        <span class="close-btn" onclick="closeModal()">✖</span>
+        <img id="modalImg" />
+      </div>
+    </div>
+
+    <script>
+      const profiles = [
+        {
+          name: "Saahithi Chinthada",
+          age: "27 Yrs 6 Months",
+          ageDiff: "6 Years 3 Months",
+          profileSource: "Sri Mangalyam Matrimony",
+          dob: "9/12/1998",
+          tob: "18:40",
+          nakshatram: "Rohini",
+          raasi: "Vrushabha",
+          height: "5.3",
+          education: "B.Tech",
+          location: "Hyderabad",
+          lpa: "20",
+          image: "1BISaIXn5o3Tjut-txzt-Z9bZGdDURfXY",
+        },
+        {
+          name: "Sandhya Terlapu",
+          age: "27 Yrs 11 Months",
+          ageDiff: "5 Years 10 Months",
+          profileSource: "Sri Mangalyam Matrimony",
+          dob: "4/19/1998",
+          tob: "11:13",
+          nakshatram: "Uttarashada",
+          raasi: "Dhanusha",
+          height: "5.4",
+          education: "B.Tech",
+          location: "Bangalore",
+          lpa: "18",
+          image: "1ja9XF0Q51yiwtsGASsMptWcsYIGXbtzc",
+        },
+        {
+          name: "Manvitha Chiruvella",
+          age: "28 Yrs 5 Months",
+          ageDiff: "5 Years 4 Months",
+          dob: "10/9/1997",
+          tob: "5:00",
+          nakshatram: "Poorvashada",
+          raasi: "Dhanusha",
+          height: "5.5",
+          education: "M.Tech",
+          location: "Bangalore",
+          lpa: "25",
+          image: "1zW8hGtUh1TQzgLj3Ljk4bDL56TxWfBvL",
+        }
+      ];
+
+      const container = document.getElementById("container");
+
+      const NA = (v) => (v ? v : "NA");
+
+      function formatAge(age) {
+        return age || "NA";
+      }
+
+      function getHeightInInches(h) {
+        const [f, i] = (h || "0.0").split(".");
+        return parseInt(f) * 12 + parseInt(i || 0);
+      }
+
+      function applySort() {
+        const type = document.getElementById("sortBy").value;
+        const order = document.getElementById("sortOrder").value;
+
+        profiles.sort((a, b) => {
+          let A, B;
+
+          switch (type) {
+            case "age":
+              A = parseFloat(a.age);
+              B = parseFloat(b.age);
+              break;
+            case "lpa":
+              A = parseFloat(a.lpa || 0);
+              B = parseFloat(b.lpa || 0);
+              break;
+            case "location":
+              return order === "asc"
+                ? a.location.localeCompare(b.location)
+                : b.location.localeCompare(a.location);
+            case "height":
+              A = getHeightInInches(a.height);
+              B = getHeightInInches(b.height);
+              break;
+          }
+
+          return order === "asc" ? A - B : B - A;
+        });
+
+        render();
+      }
+
+      function openModal(img) {
+        document.getElementById("modal").style.display = "flex";
+        document.getElementById("modalImg").src =
+          "https://lh3.googleusercontent.com/d/" + img;
+      }
+
+      function closeModal() {
+        document.getElementById("modal").style.display = "none";
+      }
+
+      function outsideClick(e) {
+        if (e.target.id === "modal") closeModal();
+      }
+
+      function render() {
+        container.innerHTML = "";
+
+        profiles.forEach((p) => {
+          const card = document.createElement("div");
+          card.className = "card";
+
+          const imgUrl =
+            "https://lh3.googleusercontent.com/d/" + p.image + "=s300-c";
+
+          card.innerHTML = `
+            <img src="${imgUrl}" onclick="openModal('${p.image}')">
+            <div class="name">${NA(p.name)}</div>
+
+            <div style="margin:6px 0;font-weight:600;">
+              👤 ${formatAge(p.age)} | 📊 ${NA(p.ageDiff)}
+            </div>
+
+            <div class="group">
+              <div class="row">🎂 ${NA(p.dob)} | ⏰ ${NA(p.tob)}</div>
+              <div class="row">📍 ${NA(p.location)}</div>
+            </div>
+
+            <div class="group">
+              <div class="row">✨ ${NA(p.nakshatram)}</div>
+              <div class="row">🌙 ${NA(p.raasi)}</div>
+            </div>
+
+            <div class="group">
+              <div class="row">📏 ${NA(p.height)}</div>
+              <div class="row">🎓 ${NA(p.education)}</div>
+              <div class="row">💰 ${NA(p.lpa)}</div>
+            </div>
+          `;
+
+          container.appendChild(card);
+        });
+      }
+
+      render();
+    </script>
+  </body>
+</html>
